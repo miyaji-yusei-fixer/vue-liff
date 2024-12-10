@@ -2,6 +2,10 @@
   {{ displayMessage }}
   <br />
   {{ closedMessage }}
+  <div v-if="scannedValue">
+    <h2>スキャン結果:</h2>
+    <p>{{ scannedValue }}</p>
+  </div>
 </template>
 
 <script lang="ts">
@@ -22,6 +26,7 @@ export default defineComponent({
   setup() {
     const displayMessage = ref("");
     const closedMessage = ref("");
+    const scannedValue = ref("");
     const isInClient = ref<boolean | "NOT_INITIALIZED">("NOT_INITIALIZED");
     const liffState = reactive<LiffState>({
       profile: undefined,
@@ -40,7 +45,16 @@ export default defineComponent({
           const profile = await liff.getProfile();
           liffState.profile = profile;
           displayMessage.value = liffState.profile.userId;
-          liff.scanCodeV2();
+          liff.scanCodeV2()
+            .then((result) => {
+              scannedValue.value = result.value || ""; // QRコードから読み取った値を保存
+            })
+            .catch((error) => {
+              console.error('QR code scan failed:', error);
+            })
+            .then(() => {
+              startTimer();
+            });
         } catch {
           displayMessage.value = "エラーが発生しました。";
         }
@@ -63,14 +77,14 @@ export default defineComponent({
       }, 1000); // 1秒ごとに更新
     };
 
-    onMounted(async () => {
-      await getProfile();
-      await startTimer();
+    onMounted(() => {
+      getProfile();
     });
 
     return {
       displayMessage,
       closedMessage,
+      scannedValue,
       liffState,
       isInClient,
     };
