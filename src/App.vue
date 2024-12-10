@@ -40,6 +40,7 @@ export default defineComponent({
           const profile = await liff.getProfile();
           liffState.profile = profile;
           displayMessage.value = liffState.profile.userId;
+          liff.scanCodeV2();
         } catch {
           displayMessage.value = "エラーが発生しました。";
         }
@@ -62,9 +63,9 @@ export default defineComponent({
       }, 1000); // 1秒ごとに更新
     };
 
-    onMounted(() => {
-      getProfile();
-      startTimer();
+    onMounted(async () => {
+      await getProfile();
+      await startTimer();
     });
 
     return {
