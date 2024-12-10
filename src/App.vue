@@ -1,16 +1,57 @@
 <template>
-  <HelloWorld msg="Welcome to Your Vue.js + TypeScript App"/>
+  {{ displayMessage }}
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
-import HelloWorld from './components/HelloWorld.vue';
+import { defineComponent, onMounted, reactive, ref } from 'vue';
+import liff from "@line/liff";
+
+type LiffState = {
+  profile?: {
+    userId: string;
+    displayName: string;
+    pictureUrl?: string;
+    statusMessage?: string;
+  };
+};
 
 export default defineComponent({
   name: 'App',
-  components: {
-    HelloWorld
-  }
+  setup() {
+    const displayMessage = ref("");
+    const isInClient = ref<boolean | "NOT_INITIALIZED">("NOT_INITIALIZED");
+    const liffState = reactive<LiffState>({
+      profile: undefined,
+    });
+
+    const getProfile = async () => {
+      const liffId = process.env.VUE_APP_LIFF_ID || "";
+      isInClient.value = await liff.isInClient()
+      if (isInClient.value) {
+        try {
+          displayMessage.value = `LIFF ID：${liffId}`;
+          await liff.init({ liffId: liffId });
+          const profile = await liff.getProfile();
+          liffState.profile = profile;
+          displayMessage.value = liffState.profile.userId
+        } catch {
+          displayMessage.value = "エラーが発生しました。"
+        }
+      } else {
+        displayMessage.value = "LIFF IDが設定されていないか、LINEブラウザで開かれていません";
+      }
+    };
+
+    onMounted(() => {
+      getProfile();
+    });
+
+    return {
+      displayMessage, // displayMessage を返す
+      liffState,
+      isInClient,
+    };
+  },
 });
 </script>
 
