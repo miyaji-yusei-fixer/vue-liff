@@ -1,0 +1,30 @@
+@startuml New Sequence
+
+actor User as U
+participant Browser as B
+participant Server as S
+participant "QR Reader" as R
+
+U -> B : Access URL
+B -> S : Get User ID
+S --> B : Return User ID
+B -> R : Launch QR Reader
+R -> U : Scan QR Code
+U --> R : QR Code
+alt QR Code contains data ID
+  R --> B : QR Code Result with Data ID
+  B -> S : Associate User ID and Data ID
+  opt Association succeeded
+    S --> B : Success
+  else Association failed
+    S --> B : Error
+    B --> U : Display Error
+  end
+else No Data ID
+  R --> B : QR Code Result without Data ID
+  S --> B : Error
+  B --> U : Display Error
+end
+B -> B : Close Browser
+
+@enduml

@@ -1,0 +1,36 @@
+@startuml Furure Activity
+
+start
+
+:User accesses URL;
+
+if (Get user ID?) then (no)
+  :Error getting user ID;
+  :Close browser;
+  stop
+else (yes)
+  :Get user ID;
+endif
+
+if (Launch QR reader?) then (yes)
+  :Launch QR reader;
+  :User scans QR code;
+  :Close QR reader;
+
+  if (QR code contains data ID?) then (yes)
+    :Get data ID from QR code;
+    :Associate user ID and data ID;
+  else (no)
+    :No data ID in QR code;
+    :Display error;
+  endif
+else (no)
+  :Error launching QR reader;
+  :Display error;
+endif
+
+:Close browser;
+
+stop
+
+@enduml
